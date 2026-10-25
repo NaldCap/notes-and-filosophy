@@ -3,6 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- NOVO-MOBILE: decide já no começo se é a visão do celular (evita piscar o layout do computador).
+       Celular = tela estreita (até 600px) ou aparelho de toque deitado (altura até 500px). -->
+  <script>
+    window.__MQ_MOBILE = '(max-width: 600px), (max-height: 500px) and (pointer: coarse)';
+    document.documentElement.classList.toggle('mobile', window.matchMedia(window.__MQ_MOBILE).matches);
+  </script>
   <title>Anotações e ideias</title>
 
   <!-- NOVO-ÍCONE: ícone da aba do navegador, embutido no próprio arquivo (funciona sem internet) -->
@@ -437,21 +444,168 @@
     }
     .virada .verso { transform: rotateY(180deg); }
 
-    /* ---------- Mobile ---------- */
-    @media (max-width: 600px) {
-      .cartao {
-        aspect-ratio: auto;
-        height: 68vh;
-        min-height: 420px;
-        border-radius: 24px;
-      }
-      .cartao::before { border-radius: 17px; }
+    /* ---------- NOVO-MOBILE: visão do celular ---------- */
+    /* Tudo abaixo só vale com a classe "mobile" no <html> (colocada pelo script do começo da página).
+       No computador a barra de cima e o fundo do menu nem aparecem. */
+    .barra-topo, .fundo-menu { display: none; }
 
-      .deco-topo-esq { width: 100px; }
-      .deco-topo-dir { width: 100px; }
-      .deco-base-esq { width: 150px; }
-      .deco-base-dir { width: 190px; }
+    /* a página não rola: o cartão é movido e ampliado pelo script (arrastar e pinça) */
+    html.mobile, html.mobile body {
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
     }
+    html.mobile main { position: static; z-index: auto; padding: 0; }
+    html.mobile .conjunto-cartao { display: contents; } /* menu, cartão e visor passam a ser posicionados direto na tela */
+
+    /* barra verde de cima, com o botão de três barrinhas */
+    html.mobile .barra-topo {
+      display: flex;
+      align-items: center;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 48px;
+      background: #0a797b;
+      z-index: 30;
+    }
+    html.mobile .btn-menu {
+      width: 48px;
+      height: 48px;
+      margin-left: 4px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    html.mobile .btn-menu span {
+      display: block;
+      width: 25px;
+      height: 3px;
+      border-radius: 2px;
+      background: #c8d1d9;
+    }
+
+    /* visor centralizado na barra de cima */
+    html.mobile .visor-zona {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      right: auto;
+      width: auto;
+      height: 48px;
+      transform: translateX(-50%);
+      align-items: center;
+      z-index: 31;
+    }
+    html.mobile .visor {
+      min-width: 78px;
+      height: 30px;
+      padding: 0 14px;
+      border-radius: 15px;
+      font-size: 13px;
+      background: #f4f4f4;
+    }
+
+    /* cartão: tamanho e posição vêm do script (largura = --largura-cartao, posição = transform) */
+    html.mobile .cartao {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 2;
+      transform-origin: 0 0;
+      border-width: 3px;
+      border-radius: 18px;
+    }
+    html.mobile .cartao::before { inset: 5px; border-width: 1px; border-radius: 13px; }
+    html.mobile .area-branca { inset: 9px; border-radius: 10px; }
+
+    /* barra de setas: flutua por cima do cartão, embaixo e centralizada */
+    html.mobile .controles {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 36px;
+      margin: 0;
+      border-radius: 18px;
+      z-index: 20;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    }
+    html.mobile .controles button { border-radius: 18px; }
+    html.mobile .controles button:hover { background: transparent; }
+    html.mobile .controles button:active { background: rgba(0, 0, 0, 0.08); }
+    html.mobile .controles svg { width: 22px; height: 22px; }
+    html.mobile .controles .sep { height: 18px; }
+
+    /* menu: painel turquesa que abre pela esquerda, por cima de tudo (menos da barra de cima) */
+    html.mobile .fundo-menu {
+      position: fixed;
+      top: 48px; left: 0; right: 0; bottom: 0;
+      z-index: 35;
+      background: transparent;
+    }
+    html.mobile.menu-aberto .fundo-menu { display: block; }
+
+    html.mobile .menu-lateral {
+      position: fixed;
+      top: 48px;
+      bottom: 0;
+      left: 0;
+      width: 47%;
+      min-width: 150px;
+      padding: 10px 15px;
+      gap: 32px;
+      overflow-y: auto;
+      background: var(--teal);
+      z-index: 40;
+      transform: translateX(-100%);
+      visibility: hidden;
+      transition: transform 0.22s ease-out, visibility 0s linear 0.22s;
+    }
+    html.mobile.menu-aberto .menu-lateral {
+      transform: none;
+      visibility: visible;
+      transition: transform 0.22s ease-out;
+    }
+    html.mobile .menu-lateral button {
+      position: relative;
+      flex: none;
+      height: 44px;
+      padding: 0 8px;
+      border-radius: 15px;
+      background: #0b9c9f;
+      font-size: 14px;
+      letter-spacing: -0.4px;
+    }
+    html.mobile .menu-lateral button:hover { background: #0b9c9f; }
+    html.mobile .menu-lateral button.ativo,
+    html.mobile .menu-lateral button.ativo:hover { background: var(--escuro); }
+    html.mobile .menu-lateral br { display: none; } /* o texto quebra sozinho na largura do painel */
+    /* linha cinza embaixo de cada botão */
+    html.mobile .menu-lateral button::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -17px;
+      width: 74%;
+      height: 2.5px;
+      transform: translateX(-50%);
+      border-radius: 2px;
+      background: #c8d1d9;
+    }
+
+    html.mobile .deco-topo-esq { width: 100px; }
+    html.mobile .deco-topo-dir { width: 100px; }
+    html.mobile .deco-base-esq { width: 150px; }
+    html.mobile .deco-base-dir { width: 190px; }
   </style>
 </head>
 
@@ -487,13 +641,21 @@
     <path d="M0 100 C120 90 230 50 300 0 L300 100 Z" fill="#12b5b8"/>
   </svg>
 
+  <!-- NOVO-MOBILE: barra de cima e fundo do menu (só aparecem na visão do celular) -->
+  <header class="barra-topo" id="barraTopo">
+    <button type="button" class="btn-menu" id="btnMenu" aria-label="Abrir menu" aria-expanded="false" aria-controls="menuLateral">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+  <div class="fundo-menu" id="fundoMenu"></div>
+
   <main>
     <!-- NOVO-MENU: conjunto = menu lateral + cartão (tudo preso ao cartão) -->
     <div class="conjunto-cartao">
 
-      <div class="menu-lateral" role="group" aria-label="Modos de leitura">
+      <div class="menu-lateral" id="menuLateral" role="group" aria-label="Modos de leitura">
         <button type="button" id="btnLivro" class="ativo" aria-pressed="true">Livro</button>
-        <button type="button" id="btnPdf" aria-pressed="false">Ler um PDF<br>como um livro</button>
+        <button type="button" id="btnPdf" aria-pressed="false">Ler um PDF <br>como um livro</button>
       </div>
 
       <div class="cartao">
@@ -570,12 +732,14 @@
       // Faz a página ficar tão larga quanto o cartão (+ menu/visor + margens do main),
       // assim o conjunto continua centralizado em relação ao cartão e não à janela.
       function ajustarPagina() {
+        if (raiz.classList.contains('mobile')) { document.body.style.minWidth = ''; return; } // NOVO-MOBILE: a página não rola no celular
         const necessaria = largura + 2 * reservaLateral() + 32; // ALTERADO-MENU: inclui o menu dos dois lados
         document.body.style.minWidth =
           necessaria > window.innerWidth ? necessaria + 'px' : '';
       }
 
       function calcular() {
+        if (raiz.classList.contains('mobile')) return; // NOVO-MOBILE: no celular o tamanho do cartão é definido pelo zoom (script do celular)
         largura = Math.min(
           window.innerWidth * 0.96 - 2 * reservaLateral(), // ALTERADO-MENU: desconta o menu dos dois lados
           (window.innerHeight - alturaReservada()) * 1.414 // ALTERADO: antes era (window.innerHeight - 110)
@@ -1112,6 +1276,182 @@
 
       entrarModo('livro');
       ajustarEscala();
+    })();
+  </script>
+
+  <!-- ===================== NOVO-MOBILE: ZOOM, ARRASTO E MENU DO CELULAR ===================== -->
+  <script>
+    (function () {
+      const raiz = document.documentElement;
+      const cartao = document.querySelector('.cartao');
+      const btnMenu = document.getElementById('btnMenu');
+      const menu = document.getElementById('menuLateral');
+      const fundoMenu = document.getElementById('fundoMenu');
+
+      const ALTURA_BARRA = 48;      // altura da barra de cima (igual ao CSS)
+      const MARGEM_H = 12;          // folga entre o cartão e as bordas laterais da tela
+      const MARGEM_V = 16;          // folga entre o cartão e as barras de cima e de baixo
+      const LARGURA_MIN = 200;
+      const ZOOM_MAX = 4;
+      const PROPORCAO = 420 / 297;  // largura / altura do cartão
+
+      let zoom = 1, tx = 0, ty = 0; // zoom atual e posição do canto superior esquerdo do cartão
+      let larguraBase = 0;          // largura do cartão com zoom 1
+      let quadro = 0;               // desenho agendado
+
+      function celular() { return raiz.classList.contains('mobile'); }
+
+      // tamanho do cartão sem zoom: 93% da largura da tela (ou o que a altura permitir)
+      function medir() {
+        larguraBase = Math.max(LARGURA_MIN, Math.min(
+          window.innerWidth * 0.93,
+          (window.innerHeight - 2 * (ALTURA_BARRA + MARGEM_V)) * PROPORCAO
+        ));
+      }
+
+      function dimensoes() {
+        const w = larguraBase * zoom;
+        return { w: w, h: w / PROPORCAO };
+      }
+
+      // mantém o cartão dentro dos limites: se cabe na tela fica centralizado, se não cabe dá para ver qualquer parte dele
+      function limitar() {
+        const d = dimensoes();
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const topo = ALTURA_BARRA + MARGEM_V, base = vh - topo;
+        tx = d.w > vw - 2 * MARGEM_H ? Math.min(MARGEM_H, Math.max(vw - MARGEM_H - d.w, tx)) : (vw - d.w) / 2;
+        ty = d.h > base - topo     ? Math.min(topo,   Math.max(base - d.h, ty))        : (vh - d.h) / 2;
+      }
+
+      function aplicar() {
+        quadro = 0;
+        const d = dimensoes();
+        raiz.style.setProperty('--largura-cartao', d.w + 'px');
+        cartao.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
+      }
+      function agendar() { if (!quadro) quadro = requestAnimationFrame(aplicar); }
+
+      // ---------- gestos: um dedo arrasta, dois dedos fazem zoom (pinça) ----------
+      let gesto = null;      // 'arrasto' | 'pinca' | null
+      let ultimo = null;     // último ponto do arrasto
+      let pinca = null;      // dados da pinça no começo
+      let vx = 0, vy = 0;    // velocidade do arrasto (para continuar deslizando ao soltar)
+      let inerciaId = 0;
+
+      function ignorar(alvo) {
+        return alvo && alvo.closest && alvo.closest('.barra-topo, .menu-lateral, .fundo-menu, .controles, .visor-zona');
+      }
+      function meio(t) { return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; }
+      function distancia(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+      function pararInercia() { if (inerciaId) { cancelAnimationFrame(inerciaId); inerciaId = 0; } }
+
+      function iniciarPinca(t) {
+        const m = meio(t), d = dimensoes();
+        // guarda qual ponto do cartão está entre os dedos, para ele ficar sob os dedos durante o zoom
+        pinca = { dist: Math.max(1, distancia(t)), zoom: zoom, ux: (m.x - tx) / d.w, uy: (m.y - ty) / d.h };
+        gesto = 'pinca';
+      }
+      function iniciarArrasto(t) {
+        ultimo = { x: t.clientX, y: t.clientY, t: performance.now() };
+        vx = 0; vy = 0;
+        gesto = 'arrasto';
+      }
+
+      document.addEventListener('touchstart', function (e) {
+        if (!celular() || raiz.classList.contains('menu-aberto') || ignorar(e.target)) return;
+        pararInercia();
+        if (e.touches.length >= 2) iniciarPinca(e.touches); else iniciarArrasto(e.touches[0]);
+      }, { passive: true });
+
+      document.addEventListener('touchmove', function (e) {
+        if (!celular() || !gesto) return;
+        if (e.cancelable) e.preventDefault(); // impede o navegador de rolar ou dar zoom na página inteira
+        if (gesto === 'pinca' && e.touches.length >= 2) {
+          const m = meio(e.touches);
+          zoom = Math.min(ZOOM_MAX, Math.max(1, pinca.zoom * distancia(e.touches) / pinca.dist));
+          const d = dimensoes();
+          tx = m.x - pinca.ux * d.w;
+          ty = m.y - pinca.uy * d.h;
+          limitar();
+          agendar();
+        } else if (gesto === 'arrasto' && e.touches.length === 1) {
+          const t = e.touches[0], agora = performance.now();
+          const dt = Math.max(1, agora - ultimo.t);
+          const dx = t.clientX - ultimo.x, dy = t.clientY - ultimo.y;
+          tx += dx; ty += dy;
+          vx = 0.7 * vx + 0.3 * (dx / dt);
+          vy = 0.7 * vy + 0.3 * (dy / dt);
+          ultimo = { x: t.clientX, y: t.clientY, t: agora };
+          limitar();
+          agendar();
+        }
+      }, { passive: false });
+
+      function fimDoToque(e) {
+        if (!celular() || !gesto) return;
+        if (e.touches.length >= 2) { iniciarPinca(e.touches); return; }
+        if (e.touches.length === 1) { iniciarArrasto(e.touches[0]); return; } // soltou um dedo da pinça: segue arrastando
+        const era = gesto;
+        gesto = null; pinca = null;
+        if (era === 'arrasto' && Math.hypot(vx, vy) > 0.15 && performance.now() - ultimo.t < 80) deslizar();
+      }
+      document.addEventListener('touchend', fimDoToque, { passive: true });
+      document.addEventListener('touchcancel', fimDoToque, { passive: true });
+
+      // o cartão continua deslizando um pouco depois de soltar o dedo
+      function deslizar() {
+        let t0 = performance.now();
+        const passo = function (t) {
+          const dt = Math.min(48, t - t0); t0 = t;
+          tx += vx * dt; ty += vy * dt;
+          const f = Math.pow(0.94, dt / 16);
+          vx *= f; vy *= f;
+          const ax = tx, ay = ty;
+          limitar();
+          if (tx !== ax) vx = 0;
+          if (ty !== ay) vy = 0;
+          aplicar();
+          inerciaId = Math.hypot(vx, vy) > 0.02 ? requestAnimationFrame(passo) : 0;
+        };
+        inerciaId = requestAnimationFrame(passo);
+      }
+
+      // iPhone/iPad: impede o zoom de pinça nativo da página
+      ['gesturestart', 'gesturechange'].forEach(function (nome) {
+        document.addEventListener(nome, function (e) { if (celular()) e.preventDefault(); });
+      });
+
+      // ---------- menu (botão de três barrinhas) ----------
+      function abrirMenu(abrir) {
+        raiz.classList.toggle('menu-aberto', abrir);
+        btnMenu.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+        btnMenu.setAttribute('aria-label', abrir ? 'Fechar menu' : 'Abrir menu');
+      }
+      btnMenu.addEventListener('click', function () { abrirMenu(!raiz.classList.contains('menu-aberto')); });
+      fundoMenu.addEventListener('click', function () { abrirMenu(false); });
+      // escolher uma opção fecha o menu (a ação da opção já foi feita pelo script do livro)
+      menu.addEventListener('click', function (e) {
+        if (celular() && e.target.closest('button')) abrirMenu(false);
+      });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') abrirMenu(false); });
+
+      // ---------- tela girou, janela mudou ou passou de computador para celular ----------
+      const mq = window.matchMedia(window.__MQ_MOBILE);
+      function aoMudarModo() {
+        raiz.classList.toggle('mobile', mq.matches);
+        pararInercia(); gesto = null; pinca = null;
+        if (mq.matches) { zoom = 1; medir(); limitar(); aplicar(); }
+        else { cartao.style.transform = ''; abrirMenu(false); }
+        window.dispatchEvent(new Event('resize')); // o script das medidas do computador recalcula
+      }
+      if (mq.addEventListener) mq.addEventListener('change', aoMudarModo); else mq.addListener(aoMudarModo);
+
+      window.addEventListener('resize', function () {
+        if (!celular()) return;
+        medir(); limitar(); aplicar();
+      });
+
+      if (celular()) { medir(); limitar(); aplicar(); }
     })();
   </script>
 
